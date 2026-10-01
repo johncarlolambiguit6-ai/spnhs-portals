@@ -8,6 +8,8 @@
 <link href="assets/css/bootstrap.min.css" id="bootstrap-style" rel="stylesheet">
 <link href="assets/css/icons.min.css" rel="stylesheet">
 <link href="assets/css/app.min.css" id="app-style" rel="stylesheet">
+<link href="assets/css/spnhs-custom.css" rel="stylesheet">
+<script>(function(){var d=localStorage.getItem('spnhs_theme')==='dark';document.documentElement.setAttribute('data-bs-theme',d?'dark':'light');})();</script>
 </head>
 <body>
 <div id="layout-wrapper">
@@ -28,7 +30,15 @@
           <button type="button" class="btn header-item" data-bs-toggle="dropdown" aria-expanded="false"><i class="mdi mdi-account-switch font-size-18 me-1"></i><span class="d-none d-sm-inline">Switch role</span></button>
           <div class="dropdown-menu dropdown-menu-end" id="roles"></div>
         </div>
-        <a id="bell" class="btn header-item noti-icon position-relative"><i data-feather="bell" class="icon-lg"></i><span class="badge bg-danger rounded-pill" id="nb"></span></a>
+        <div class="dropdown d-inline-block">
+          <button type="button" class="btn header-item noti-icon position-relative" id="bell" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+            <i data-feather="bell" class="icon-lg"></i><span class="badge bg-danger rounded-pill" id="nb"></span>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end spnhs-noti-menu" id="notification-menu"></div>
+        </div>
+        <button type="button" class="spnhs-theme-btn header-item" id="theme-toggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+          <i class="mdi mdi-weather-night font-size-18" id="theme-icon"></i>
+        </button>
         <div class="dropdown d-inline-block">
           <button type="button" class="btn header-item bg-light-subtle border-start border-end" data-bs-toggle="dropdown" aria-expanded="false">
             <img class="rounded-circle header-profile-user" id="av" alt="">
@@ -51,7 +61,16 @@
 
   <div class="main-content">
     <div class="page-content"><div class="container-fluid" id="view"></div></div>
-    <footer class="footer"><div class="container-fluid"><div class="row"><div class="col-sm-12">&copy; 2026 SPNHS School Portal. Prototype on sample data, nothing is saved.</div></div></div></footer>
+    <footer class="footer"><div class="container-fluid"><div class="row"><div class="col-sm-12">&copy; 2026 SPNHS School Portal.</div></div></div></footer>
+  </div>
+</div>
+<div class="modal fade" id="spnhsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="spnhsModalTitle">SPNHS</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-body" id="spnhsModalBody"></div>
+      <div class="modal-footer" id="spnhsModalFooter"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button></div>
+    </div>
   </div>
 </div>
 

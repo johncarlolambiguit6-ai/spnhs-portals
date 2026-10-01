@@ -36,7 +36,43 @@ const tip=m=>{const d=document.createElement('div');d.className='toast-container
 const flt=i=>{const q=i.value.toLowerCase();i.closest('.card').querySelectorAll('tbody tr').forEach(r=>r.hidden=!r.textContent.toLowerCase().includes(q))};
 const bd=v=>BC[v]?`<span class="badge bg-${BC[v]}-subtle text-${BC[v]}">${v}</span>`:v;
 const fg=v=>{const c=v>=75?'success':'danger';return `<span class="badge bg-${c}-subtle text-${c}">${v}</span>`};
-const btn=(t,c='primary')=>`<button class="btn btn-${c} btn-sm" onclick="tip()">${t}</button>`;
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const openModal=(title,body,footer='')=>{
+  const el=$('#spnhsModal'); if(!el)return;
+  $('#spnhsModalTitle').textContent=title; $('#spnhsModalBody').innerHTML=body;
+  $('#spnhsModalFooter').innerHTML=footer||'<button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>';
+  bootstrap.Modal.getOrCreateInstance(el).show();
+};
+const modalAction=(t)=>{
+  const key=t.toLowerCase();
+  if(key.includes('new announcement')){
+    openModal('Create Announcement',`<form id="announcementForm" class="spnhs-modal-form">
+      <div class="mb-3"><label class="form-label">Announcement title</label><input class="form-control" id="mTitle" required></div>
+      <div class="mb-3"><label class="form-label">Audience</label><select class="form-select" id="mAudience"><option>All</option><option>Grade 10 – Rizal</option><option>Teachers</option><option>Parents</option><option>Students</option></select></div>
+      <div class="mb-0"><label class="form-label">Message</label><textarea class="form-control" id="mMessage" rows="4" required></textarea></div>
+    </form>`,
+    '<button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" onclick="saveAnnouncement()">Publish</button>');
+  } else if(key.includes('save attendance')){
+    openModal('Save Attendance','<p class="mb-0">Review the attendance entries for this class before saving. This prototype stores the action only in this browser.</p>',
+      '<button class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" onclick="saveDemoAction(\'Attendance saved successfully.\')">Save attendance</button>');
+  } else if(key.includes('save grades')){
+    openModal('Save Grades','<p class="mb-0">Review the quarter 3 grades before saving. This prototype records the action locally.</p>',
+      '<button class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" onclick="saveDemoAction(\'Grades saved successfully.\')">Save grades</button>');
+  } else if(key.includes('message parent')){
+    openModal('Message Parent',`<form id="messageForm"><div class="mb-3"><label class="form-label">Recipient</label><input class="form-control" value="Parent / Guardian" readonly></div><div><label class="form-label">Message</label><textarea class="form-control" rows="4" placeholder="Type your message..."></textarea></div></form>`,
+      '<button class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" onclick="saveDemoAction(\'Message sent successfully.\')">Send message</button>');
+  } else {
+    openModal(t,'<p class="mb-0">This action is available in the SPNHS portal prototype. You can review or submit the information here.</p>',
+      '<button class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" onclick="saveDemoAction(\'Action completed successfully.\')">Continue</button>');
+  }
+};
+const saveDemoAction=m=>{bootstrap.Modal.getOrCreateInstance($('#spnhsModal')).hide();tip(m)};
+const saveAnnouncement=()=>{
+  const title=$('#mTitle')?.value.trim(),msg=$('#mMessage')?.value.trim();
+  if(!title||!msg){tip('Please complete the announcement fields.');return}
+  saveDemoAction('Announcement published successfully.');
+};
+const btn=(t,c='primary')=>`<button type="button" class="btn btn-${c} btn-sm" onclick="modalAction(${JSON.stringify(t)})">${t}</button>`;
 const card=(h,b)=>`<div class="card"><div class="card-header d-flex align-items-center justify-content-between gap-2"><h5 class="card-title mb-0">${h[0]}</h5>${h[1]||''}</div><div class="card-body">${b}</div></div>`;
 const tbl=(t,h,r,b)=>card([t,`<div class="d-flex gap-2"><input class="form-control form-control-sm" placeholder="Search" oninput="flt(this)">${b?btn(b):''}</div>`],`<div class="table-responsive"><table class="table align-middle table-nowrap mb-0"><thead class="table-light"><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${r.map(x=>`<tr>${x.map(c=>`<td>${bd(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
 const st=a=>`<div class="row">${a.map(([l,v,c,i,s])=>`<div class="col-xl-3 col-sm-6"><div class="card card-h-100"><div class="card-body d-flex align-items-center"><div class="flex-grow-1"><span class="text-muted d-block mb-2">${l}</span><h4 class="mb-1">${v}</h4><span class="text-muted font-size-13">${s}</span></div><div class="avatar-sm"><span class="avatar-title rounded bg-${c}-subtle text-${c} fs-3"><i class="mdi mdi-${i}"></i></span></div></div></div></div>`).join('')}</div>`;
@@ -100,6 +136,53 @@ student:{
 '':()=>st([['Average grade',J[4],'primary','chart-line','Quarter 3'],['Attendance',J[3]+'%','danger','calendar-check','Below 75%'],['Notifications',NS.length,'warning','bell-outline','Unread'],['Classes today',SCH.length,'info','book-open-variant','Mon, Sep 21']])+`<div class="row"><div class="col-xl-7">${card(['Grades by subject'],gr())}</div><div class="col-xl-5">${ann()}</div></div>`,
 grades:gv,attendance:att,classes:()=>tbl('Today\'s classes',['Time','Subject','Teacher','Room'],SCH),announcements:()=>ann(),calendar:cal,notifications:()=>nl(NS),profile:prof,security:sec}};
 
+
+/* ---------- theme + notification controls ---------- */
+const notificationItems=r=>({admin:[['Enrollment for SY 2026–2027 is still open','Enrollment','Sep 18'],['First quarter exams start Oct 5','Academic','Sep 17']],teacher:NT.slice(0,3),parent:NT,student:NS}[r]||[]);
+function renderNotifications(r){
+  const list=notificationItems(r), menu=$('#notification-menu');
+  if(!menu)return;
+  menu.innerHTML=`<div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom"><strong>Notifications</strong><span class="badge bg-primary-subtle text-primary">${list.length} new</span></div>`+
+    (list.length?list.map(n=>`<a href="#/${r}/${r==='parent'||r==='student'?'notifications':'announcements'}" class="notification-item"><span class="avatar-xs flex-shrink-0"><span class="avatar-title bg-primary-subtle text-primary rounded-circle"><i class="mdi mdi-bell-outline"></i></span></span><span class="flex-grow-1"><span class="d-block font-size-13">${esc(n[0])}</span><span class="text-muted font-size-11">${esc(n[1])} · ${esc(n[2])}</span></span></a>`).join(''):'<div class="p-3 text-muted text-center">No new notifications.</div>')+
+    `<div class="text-center p-2 border-top"><a href="#/${r}/${r==='parent'||r==='student'?'notifications':'announcements'}" class="small">View all</a></div>`;
+}
+function applyTheme(){
+  const dark=localStorage.getItem('spnhs_theme')==='dark';
+  const body=document.body;
+  const html=document.documentElement;
+
+  // Use Minia's native dark-mode variables instead of mixing a second theme system.
+  body.classList.toggle('spnhs-dark',dark);
+  body.setAttribute('data-bs-theme',dark?'dark':'light');
+  body.setAttribute('data-topbar',dark?'dark':'light');
+  body.setAttribute('data-sidebar',dark?'dark':'light');
+  html.setAttribute('data-bs-theme',dark?'dark':'light');
+
+  const button=$('#theme-toggle');
+  const i=$('#theme-icon');
+  if(i){
+    i.className=dark?'mdi mdi-white-balance-sunny spnhs-theme-icon':'mdi mdi-weather-night spnhs-theme-icon';
+  }
+  if(button){
+    button.setAttribute('aria-pressed',String(dark));
+    button.setAttribute('title',dark?'Switch to light mode':'Switch to dark mode');
+    button.setAttribute('aria-label',dark?'Switch to light mode':'Switch to dark mode');
+  }
+}
+function toggleTheme(){
+  const next=localStorage.getItem('spnhs_theme')==='dark'?'light':'dark';
+  localStorage.setItem('spnhs_theme',next);
+  applyTheme();
+}
+document.addEventListener('click',e=>{
+  const button=e.target.closest('#theme-toggle');
+  if(button){
+    e.preventDefault();
+    toggleTheme();
+  }
+});
+applyTheme();
+
 /* ---------- router ---------- */
 function go(){
   let [,r,p='']=location.hash.split('/');
@@ -110,7 +193,7 @@ function go(){
   $('#roles').innerHTML=Object.entries(R).map(([k,n])=>`<a class="dropdown-item ${k==r?'active':''}" href="#/${k}/">${n}</a>`).join('');
   $('#who').textContent=U[r][0];$('#av').src=`assets/images/users/avatar-${U[r][1]}.jpg`;
   $('#nb').textContent=bg.notifications||'';$('#nb').hidden=!bg.notifications;
-  $('#bell').href=`#/${r}/`+(bg.notifications?'notifications':'announcements');
+  renderNotifications(r);
   document.title=it[1]+' | SPNHS School Portal';
   $('#view').innerHTML=`<div class="row"><div class="col-12"><div class="page-title-box d-sm-flex align-items-center justify-content-between"><h4 class="mb-sm-0 font-size-18">${it[1]}</h4><ol class="breadcrumb m-0"><li class="breadcrumb-item">${R[r]}</li><li class="breadcrumb-item active">${it[1]}</li></ol></div></div></div>`+PG[r][it[0]]();
   Q.splice(0).forEach(f=>f());feather.replace();scrollTo(0,0);document.body.classList.remove('sidebar-enable');
